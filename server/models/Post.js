@@ -1,0 +1,26 @@
+import mongoose from "mongoose";
+
+const commentSchema = new mongoose.Schema(
+  {
+    author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    content: { type: String, required: true, trim: true },
+  },
+  { timestamps: true }
+);
+
+const postSchema = new mongoose.Schema(
+  {
+    author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    content: { type: String, required: true, trim: true },
+    tag: {
+      type: String,
+      enum: ["Update", "Milestone", "Research", "Project", "Mentorship"],
+      default: "Update",
+    },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    comments: [commentSchema],
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model("Post", postSchema);
