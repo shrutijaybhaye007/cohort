@@ -37,10 +37,10 @@ export default function Onboarding() {
   const [skills, setSkills] = useState([]);
   const [skillDraft, setSkillDraft] = useState("");
   const [education, setEducation] = useState({
-    university: user.university || "",
-    program: user.program || "",
-    year: user.year || "",
-    location: user.location || "",
+    university: user?.university || "",
+    program: user?.program || "",
+    year: user?.year || "",
+    location: user?.location || "",
   });
   const [goalTitle, setGoalTitle] = useState("");
   const [goals, setGoals] = useState([]);
@@ -97,7 +97,7 @@ export default function Onboarding() {
   }
 
   const stepContent = {
-    1: <StepWelcome name={user.name} />,
+    1: <StepWelcome name={user?.name || "there"} />,
     2: (
       <StepInterests
         interests={interests}

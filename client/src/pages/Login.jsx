@@ -23,7 +23,7 @@ export default function Login() {
       await login({ email, password });
       navigate("/feed");
     } catch (err) {
-      setError("Couldn't sign you in. Try again.");
+      setError(err.response?.data?.message || err.message || "Couldn't sign you in. Check your email and password.");
     } finally {
       setLoading(false);
     }
@@ -45,9 +45,6 @@ export default function Login() {
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
-        <p className="text-xs text-ink-soft text-center">
-          Demo mode: any email and password works — no account needed.
-        </p>
       </form>
       <p className="mt-6 text-sm text-ink-soft text-center">
         New here?{" "}

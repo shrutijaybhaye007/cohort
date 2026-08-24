@@ -6,7 +6,7 @@ import AuthLayout from "../components/AuthLayout";
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", university: "", program: "", email: "" });
+  const [form, setForm] = useState({ name: "", university: "", program: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -17,16 +17,20 @@ export default function Register() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (!form.name || !form.university) {
-      setError("Add your name and university to continue.");
+    if (!form.name || !form.email || !form.password) {
+      setError("Name, email, and password are required.");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
       return;
     }
     setLoading(true);
     try {
       await register(form);
-      navigate("/profile");
+      navigate("/onboarding");
     } catch (err) {
-      setError("Something went wrong creating your profile.");
+      setError(err.response?.data?.message || err.message || "Something went wrong creating your profile.");
     } finally {
       setLoading(false);
     }
@@ -40,6 +44,7 @@ export default function Register() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="Full name" value={form.name} onChange={set("name")} placeholder="Ananya Sharma" />
         <Field label="Campus email" type="email" value={form.email} onChange={set("email")} placeholder="you@university.edu" />
+        <Field label="Password (min 6 characters)" type="password" value={form.password} onChange={set("password")} placeholder="••••••••" />
         <Field label="University" value={form.university} onChange={set("university")} placeholder="Shivaji University" />
         <Field label="Program" value={form.program} onChange={set("program")} placeholder="B.Tech Computer Science" />
         {error && <p className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>}
