@@ -14,9 +14,4 @@
  */
 
 // Vite statically replaces import.meta.env.VITE_USE_REAL_API at build time.
-// Both modules are barrel-re-exported so tree-shaking still works.
-
-export * from "./mockApi";           // ← default: mock mode
-
-// To switch to real API, replace the line above with:
-// export * from "./serverApi";
+export * from "./serverApi";
