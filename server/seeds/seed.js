@@ -9,8 +9,16 @@
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import dns from "node:dns";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+
+// Ensure DNS resolution succeeds for MongoDB Atlas SRV records
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  // fallback to system resolver if setServers fails
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
