@@ -1,21 +1,50 @@
-# Cohort
+# Cohort — Professional Networking Platform for Higher Education Students
 
-A professional networking platform for higher-education students — built to solve
-a specific gap: once class ends, there's no continuous space for students, alumni,
-and faculty to keep building a professional record together (unlike LinkedIn, which
-isn't campus-shaped, or a Discord server, which doesn't persist a profile).
+> **GPI Internship Project** — Full-Stack Web Application  
+> Problem Statement: *Unavailability of a Professional Networking Platform for Higher Education Students for Continuous Professional Development*
 
-**MVP scope:** profiles, connections (send/accept/ignore), and a feed for posting
-updates, research, and milestones — with likes and comments.
+---
 
-This repo is a **frontend-first build**: `client/` is a complete, polished, fully
-working React app. It runs standalone with a realistic mock backend (`localStorage`
-under the hood), so you can open it and use every feature immediately — no database
-setup required. `server/` is a working Express + MongoDB API covering the same
-MVP feature set, scaffolded so you can extend it (jobs board, events, mentorship
-matching, etc.) rather than start from zero.
+## Tech Stack
 
-## Quick start (frontend only, zero setup)
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, Vite, Tailwind CSS, React Router v7 |
+| Backend | Node.js, Express.js (ESM) |
+| Database | MongoDB (Mongoose ODM) |
+| Auth | JWT (jsonwebtoken) + bcryptjs |
+| Security | helmet, express-rate-limit, CORS origin restriction |
+
+---
+
+## Project Structure
+
+```
+campus-network/
+├── client/          # React frontend (Vite)
+│   ├── src/
+│   │   ├── api/
+│   │   │   ├── index.js      ← API mode switcher (mock ↔ real)
+│   │   │   ├── mockApi.js    ← localStorage mock (demo/offline)
+│   │   │   ├── serverApi.js  ← real Express+MongoDB API
+│   │   │   └── client.js     ← Axios base instance
+│   │   ├── context/          ← AuthContext, NotificationContext
+│   │   ├── hooks/            ← useDebounce, useFetch, useToast
+│   │   ├── pages/            ← 10 pages
+│   │   └── components/       ← 18 reusable components
+└── server/          # Express backend
+    ├── models/      ← 7 Mongoose models
+    ├── routes/      ← 8 REST route groups
+    ├── middleware/  ← JWT auth guard
+    ├── seeds/       ← DB seed script
+    └── config/      ← MongoDB connection
+```
+
+---
+
+## Running the App
+
+### Mode A — Demo/Offline (no backend needed)
 
 ```bash
 cd client
@@ -23,79 +52,110 @@ npm install
 npm run dev
 ```
 
-Open the printed localhost URL. Click **Create your profile** to "register" (demo
-auth accepts any email/password) and explore the feed, network, and profile pages.
-Data persists in your browser's localStorage between reloads; there's a
-`resetDemoData()` helper exported from `src/api/mockApi.js` if you want to reset it.
+Open `http://localhost:5173`. Uses in-memory localStorage data.  
+Default credentials: **any email / any password** (mock accepts all).
 
-## Running the real backend
+---
 
+### Mode B — Full-Stack (React → Express → MongoDB)
+
+#### 1. Start MongoDB
+```bash
+# Local MongoDB must be running on port 27017
+# Or set MONGO_URI in server/.env to a MongoDB Atlas URI
+```
+
+#### 2. Configure the server
 ```bash
 cd server
-cp .env.example .env    # then fill in MONGO_URI and JWT_SECRET
+cp .env.example .env
+# Edit .env — set MONGO_URI and a strong JWT_SECRET
 npm install
-npm run dev              # starts on http://localhost:5000
 ```
 
-You'll need a MongoDB instance — either [MongoDB Atlas](https://www.mongodb.com/atlas)
-(free tier, no local install) or a local `mongod`. Paste the connection string into
-`MONGO_URI` in `server/.env`.
-
-### Wiring the frontend to the real backend
-
-The frontend currently imports from `src/api/mockApi.js` everywhere. To point it at
-your running Express server instead:
-
-1. Copy `client/.env.example` to `client/.env` and confirm `VITE_API_URL` matches
-   your server (defaults to `http://localhost:5000/api`).
-2. In each page that does `import * as api from "../api/mockApi"`, change the path
-   to `"../api/serverApi"`. That file (`client/src/api/serverApi.js`) is a drop-in
-   replacement — same function names, same return shapes — talking to your real API.
-
-Files that import the API layer: `src/context/AuthContext.jsx`, `src/pages/Feed.jsx`,
-`src/pages/Network.jsx`, `src/pages/Profile.jsx`.
-
-## Project structure
-
-```
-campus-network/
-├── client/                  React app (Vite)
-│   └── src/
-│       ├── api/
-│       │   ├── mockApi.js      localStorage-backed mock backend (default)
-│       │   ├── serverApi.js    real API wrapper, same interface as mockApi
-│       │   ├── client.js       axios instance for serverApi
-│       │   └── seedData.js     demo users/posts shown on first run
-│       ├── components/         Avatar, GrowthRing, PostCard, AppShell, etc.
-│       ├── context/AuthContext.jsx
-│       └── pages/               Login, Register, Feed, Network, Profile
-└── server/                  Express + MongoDB API
-    ├── models/               User, Post, Connection (Mongoose schemas)
-    ├── routes/                auth, users, posts, connections
-    ├── middleware/auth.js     JWT verification
-    └── server.js
+#### 3. (Optional) Seed the database
+```bash
+node seeds/seed.js
+# Creates demo users, posts, opportunities, resources
+# Demo login after seeding: sanket@demo.com / demo1234
 ```
 
-## Design notes
+#### 4. Start the server
+```bash
+npm start
+# API runs on http://localhost:5000
+```
 
-The visual identity is built around a **growth ring** — a segmented circle around
-each avatar (see `GrowthRing.jsx`), styled after tree growth rings, representing a
-student's accumulating "development credits" as they post, connect, and build out
-their profile. It's the one recurring motif tying the UI back to the actual problem:
-professional growth that keeps accumulating past a single semester, instead of a
-one-off gold star.
+#### 5. Configure the client and start
+```bash
+cd client
+cp .env.example .env
+# Set VITE_USE_REAL_API=true in client/.env
+npm run dev
+# App runs on http://localhost:5173
+```
 
-Palette: forest green (growth, academia) + a muted gold accent (achievement) on a
-warm parchment background, paired with a serif display face (Fraunces) for identity
-and a clean sans (Inter) for body text — deliberately avoiding the generic
-cream-and-terracotta AI-template look.
+---
 
-## Extending this
+## Features
 
-Natural next features, given the models already in place:
-- **Events/webinars** — new `Event` model, RSVP list, shows up on profiles and feed
-- **Mentorship matching** — tag users as `mentor`/`mentee`, filter Network by role
-- **Jobs board** — `Job` model posted by faculty/alumni, applications tracked per user
-- **Notifications** — new connection requests and comments currently require a
-  page reload/re-fetch; a `Notification` model + polling or WebSocket would close
-  that gap
+| Feature | Page | Status |
+|---------|------|--------|
+| Register / Login (JWT) | `/register`, `/login` | ✅ |
+| Onboarding wizard (4 steps) | `/onboarding` | ✅ |
+| Professional dashboard | `/` | ✅ |
+| Activity feed (post, like, comment, delete) | `/feed` | ✅ |
+| Network / Connections | `/network` | ✅ |
+| Opportunities (internships, hackathons, …) | `/opportunities` | ✅ |
+| Learning resources | `/resources` | ✅ |
+| Development goals + skill tracking | `/development` | ✅ |
+| Full profile editor | `/profile` | ✅ |
+| Notifications | `/notifications` | ✅ |
+| Settings | `/settings` | ✅ |
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/auth/register` | — | Register new user |
+| POST | `/api/auth/login` | — | Login, returns JWT |
+| GET | `/api/auth/session` | ✅ | Get current user |
+| GET | `/api/users` | ✅ | List users (search: `?q=`) |
+| GET | `/api/users/me` | ✅ | Get own profile |
+| PATCH | `/api/users/me` | ✅ | Update own profile |
+| GET | `/api/users/:id` | ✅ | Get user by ID |
+| GET | `/api/posts` | ✅ | Get all posts |
+| POST | `/api/posts` | ✅ | Create post |
+| POST | `/api/posts/:id/like` | ✅ | Toggle like |
+| POST | `/api/posts/:id/comments` | ✅ | Add comment |
+| DELETE | `/api/posts/:id` | ✅ | Delete own post |
+| GET | `/api/connections` | ✅ | Get connections |
+| POST | `/api/connections/:id/request` | ✅ | Send connection request |
+| POST | `/api/connections/:id/accept` | ✅ | Accept request |
+| DELETE | `/api/connections/:id/ignore` | ✅ | Decline request |
+| GET | `/api/opportunities` | ✅ | List opportunities |
+| GET | `/api/resources` | ✅ | List resources |
+| GET | `/api/notifications` | ✅ | Get notifications |
+| PUT | `/api/notifications/read-all` | ✅ | Mark all read |
+| PUT | `/api/notifications/:id/read` | ✅ | Mark one read |
+| GET | `/api/development/goals` | ✅ | Get user goals |
+| POST | `/api/development/goals` | ✅ | Create goal |
+| PUT | `/api/development/goals/:id` | ✅ | Update goal |
+| DELETE | `/api/development/goals/:id` | ✅ | Delete goal |
+| GET | `/api/health` | — | Health check |
+
+---
+
+## Security
+
+- Passwords hashed with `bcryptjs` (salt rounds: 10)
+- JWT tokens expire in 7 days
+- `helmet` security headers on all responses
+- CORS restricted to `CLIENT_URL` origin
+- Auth rate limiting: 20 requests / 15 min per IP
+- Global rate limiting: 300 requests / 15 min per IP
+- Server never leaks `err.message` stack traces in production
+- All write routes enforce server-side ownership checks
+- Password field excluded from all query results (`select: false`)
