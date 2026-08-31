@@ -5,15 +5,26 @@
 
 ---
 
+## 🚀 Live Deployment
+
+| Service | URL |
+|---------|-----|
+| Frontend | https://cohort-client.onrender.com *(after deployment)* |
+| Backend API | https://cohort-api.onrender.com/api/health *(after deployment)* |
+| Repository | https://github.com/shrutijaybhaye007/cohort |
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 18, Vite, Tailwind CSS, React Router v7 |
 | Backend | Node.js, Express.js (ESM) |
-| Database | MongoDB (Mongoose ODM) |
+| Database | MongoDB Atlas (Mongoose ODM) |
 | Auth | JWT (jsonwebtoken) + bcryptjs |
 | Security | helmet, express-rate-limit, CORS origin restriction |
+| Deployment | Render (API + Static Site) + MongoDB Atlas |
 
 ---
 
@@ -21,7 +32,9 @@
 
 ```
 campus-network/
-├── client/          # React frontend (Vite)
+├── render.yaml          ← Render deployment blueprint
+├── netlify.toml         ← Netlify alternative config
+├── client/              # React frontend (Vite)
 │   ├── src/
 │   │   ├── api/
 │   │   │   ├── index.js      ← API mode switcher (mock ↔ real)
@@ -32,68 +45,68 @@ campus-network/
 │   │   ├── hooks/            ← useDebounce, useFetch, useToast
 │   │   ├── pages/            ← 10 pages
 │   │   └── components/       ← 18 reusable components
-└── server/          # Express backend
-    ├── models/      ← 7 Mongoose models
-    ├── routes/      ← 8 REST route groups
-    ├── middleware/  ← JWT auth guard
-    ├── seeds/       ← DB seed script
-    └── config/      ← MongoDB connection
+└── server/              # Express backend
+    ├── models/          ← 7 Mongoose models
+    ├── routes/          ← 8 REST route groups
+    ├── middleware/       ← JWT auth guard
+    ├── seeds/           ← DB seed script
+    └── config/          ← MongoDB connection
 ```
 
 ---
 
-## Running the App
+## Running Locally
 
-### Mode A — Demo/Offline (no backend needed)
+### Demo Mode (no backend needed)
 
 ```bash
 cd client
 npm install
-npm run dev
+npm run dev     # http://localhost:5173
 ```
 
-Open `http://localhost:5173`. Uses in-memory localStorage data.  
-Default credentials: **any email / any password** (mock accepts all).
+Uses localStorage — works offline. Any email/password accepted.
 
 ---
 
-### Mode B — Full-Stack (React → Express → MongoDB)
+### Full-Stack Mode (React → Express → MongoDB)
 
-#### 1. Start MongoDB
-```bash
-# Local MongoDB must be running on port 27017
-# Or set MONGO_URI in server/.env to a MongoDB Atlas URI
-```
+**1. Start MongoDB** (local or Atlas)
 
-#### 2. Configure the server
+**2. Configure & start the server**
 ```bash
 cd server
 cp .env.example .env
-# Edit .env — set MONGO_URI and a strong JWT_SECRET
+# Edit .env — set MONGO_URI and JWT_SECRET
 npm install
+npm start       # API on http://localhost:5000
 ```
 
-#### 3. (Optional) Seed the database
-```bash
-node seeds/seed.js
-# Creates demo users, posts, opportunities, resources
-# Demo login after seeding: sanket@demo.com / demo1234
-```
-
-#### 4. Start the server
-```bash
-npm start
-# API runs on http://localhost:5000
-```
-
-#### 5. Configure the client and start
+**3. Configure & start the client**
 ```bash
 cd client
 cp .env.example .env
-# Set VITE_USE_REAL_API=true in client/.env
-npm run dev
-# App runs on http://localhost:5173
+# Set VITE_USE_REAL_API=true and VITE_API_URL=http://localhost:5000/api
+npm run dev     # http://localhost:5173
 ```
+
+**4. (Optional) Seed demo data**
+```bash
+cd server
+node seeds/seed.js
+# Demo login: sanket@demo.com / demo1234
+```
+
+---
+
+## Deploying to Render + MongoDB Atlas
+
+See the full step-by-step guide in [`deployment_guide.md`](./DEPLOYMENT.md).
+
+**Quick summary:**
+1. Create free MongoDB Atlas cluster → copy connection URI
+2. Render → New Web Service → root: `server` → add env vars (`MONGO_URI`, `JWT_SECRET`, `CLIENT_URL`)
+3. Render → New Static Site → root: `client` → add env vars (`VITE_API_URL`, `VITE_USE_REAL_API=true`)
 
 ---
 
@@ -102,14 +115,14 @@ npm run dev
 | Feature | Page | Status |
 |---------|------|--------|
 | Register / Login (JWT) | `/register`, `/login` | ✅ |
-| Onboarding wizard (4 steps) | `/onboarding` | ✅ |
+| Onboarding wizard | `/onboarding` | ✅ |
 | Professional dashboard | `/` | ✅ |
 | Activity feed (post, like, comment, delete) | `/feed` | ✅ |
 | Network / Connections | `/network` | ✅ |
-| Opportunities (internships, hackathons, …) | `/opportunities` | ✅ |
+| Opportunities | `/opportunities` | ✅ |
 | Learning resources | `/resources` | ✅ |
-| Development goals + skill tracking | `/development` | ✅ |
-| Full profile editor | `/profile` | ✅ |
+| Development goals + skills | `/development` | ✅ |
+| Profile editor | `/profile` | ✅ |
 | Notifications | `/notifications` | ✅ |
 | Settings | `/settings` | ✅ |
 
@@ -119,43 +132,41 @@ npm run dev
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| POST | `/api/auth/register` | — | Register new user |
-| POST | `/api/auth/login` | — | Login, returns JWT |
-| GET | `/api/auth/session` | ✅ | Get current user |
-| GET | `/api/users` | ✅ | List users (search: `?q=`) |
-| GET | `/api/users/me` | ✅ | Get own profile |
-| PATCH | `/api/users/me` | ✅ | Update own profile |
-| GET | `/api/users/:id` | ✅ | Get user by ID |
-| GET | `/api/posts` | ✅ | Get all posts |
+| GET | `/api/health` | — | Health check |
+| POST | `/api/auth/register` | — | Register |
+| POST | `/api/auth/login` | — | Login → JWT |
+| GET | `/api/auth/session` | ✅ | Current user |
+| GET | `/api/users` | ✅ | List users (`?q=search`) |
+| GET | `/api/users/me` | ✅ | Own profile |
+| PATCH | `/api/users/me` | ✅ | Update profile |
+| GET | `/api/users/:id` | ✅ | User by ID |
+| GET | `/api/posts` | ✅ | Feed posts |
 | POST | `/api/posts` | ✅ | Create post |
 | POST | `/api/posts/:id/like` | ✅ | Toggle like |
 | POST | `/api/posts/:id/comments` | ✅ | Add comment |
 | DELETE | `/api/posts/:id` | ✅ | Delete own post |
-| GET | `/api/connections` | ✅ | Get connections |
-| POST | `/api/connections/:id/request` | ✅ | Send connection request |
-| POST | `/api/connections/:id/accept` | ✅ | Accept request |
-| DELETE | `/api/connections/:id/ignore` | ✅ | Decline request |
-| GET | `/api/opportunities` | ✅ | List opportunities |
-| GET | `/api/resources` | ✅ | List resources |
-| GET | `/api/notifications` | ✅ | Get notifications |
+| GET | `/api/connections` | ✅ | My connections |
+| POST | `/api/connections/:id/request` | ✅ | Send request |
+| POST | `/api/connections/:id/accept` | ✅ | Accept |
+| DELETE | `/api/connections/:id/ignore` | ✅ | Decline |
+| GET | `/api/opportunities` | ✅ | Opportunities |
+| GET | `/api/resources` | ✅ | Resources |
+| GET | `/api/notifications` | ✅ | Notifications |
 | PUT | `/api/notifications/read-all` | ✅ | Mark all read |
-| PUT | `/api/notifications/:id/read` | ✅ | Mark one read |
-| GET | `/api/development/goals` | ✅ | Get user goals |
+| GET | `/api/development/goals` | ✅ | Goals |
 | POST | `/api/development/goals` | ✅ | Create goal |
 | PUT | `/api/development/goals/:id` | ✅ | Update goal |
 | DELETE | `/api/development/goals/:id` | ✅ | Delete goal |
-| GET | `/api/health` | — | Health check |
 
 ---
 
 ## Security
 
 - Passwords hashed with `bcryptjs` (salt rounds: 10)
-- JWT tokens expire in 7 days
-- `helmet` security headers on all responses
-- CORS restricted to `CLIENT_URL` origin
-- Auth rate limiting: 20 requests / 15 min per IP
-- Global rate limiting: 300 requests / 15 min per IP
-- Server never leaks `err.message` stack traces in production
-- All write routes enforce server-side ownership checks
-- Password field excluded from all query results (`select: false`)
+- JWT tokens — 7-day expiry
+- `helmet` security headers
+- CORS restricted to `CLIENT_URL`
+- Rate limiting: auth (20/15 min), global (300/15 min)
+- No `err.message` exposure in production
+- Server-side ownership checks on all write routes
+- `trust proxy` set for Render's reverse proxy
