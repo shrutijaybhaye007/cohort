@@ -50,7 +50,8 @@ export async function getSession() {
 // ─── Users / Profile ──────────────────────────────────────────────────────
 
 export async function getUser(id) {
-  const { data } = await api.get(`/users/${id}`);
+  const endpoint = !id || id === "me" || id === "undefined" || id === "null" ? "/users/me" : `/users/${id}`;
+  const { data } = await api.get(endpoint);
   return normalizeUser(data);
 }
 

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import { requireAuth } from "../middleware/auth.js";
 
@@ -47,6 +48,9 @@ router.get("/me", requireAuth, async (req, res) => {
 // Get a specific user by ID
 router.get("/:id", requireAuth, async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const user = await User.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import * as api from "../api";
 import { useAuth } from "../context/AuthContext";
@@ -15,10 +15,10 @@ import { Pencil, MapPin, GraduationCap, X, Plus, GitBranch, Link2, Globe, Extern
 const PROFICIENCY_LEVELS = ["Beginner", "Intermediate", "Advanced"];
 
 function getProfLevel(proficiencies = [], skill) {
-  return proficiencies.find((p) => p.skill === skill).level || null;
+  return proficiencies.find((p) => p.skill === skill)?.level || null;
 }
 
-// â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Main Component ──────────────────────────────────────────────────────
 
 export default function Profile() {
   const { id } = useParams();
@@ -31,14 +31,26 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [connections, setConnections] = useState({ connected: [], pending: [], incoming: [] });
 
-  const isSelf = !id || id === currentUser.id;
-  const targetId = id || currentUser.id;
+  const isSelf = !id || (currentUser && (id === currentUser.id || id === currentUser._id));
+  const targetId = id || currentUser?.id || currentUser?._id || "me";
 
   const loadProfile = useCallback(async () => {
-    const [u, c] = await Promise.all([api.getUser(targetId), api.getConnections()]);
-    setProfile(u);
-    setConnections(c);
-  }, [targetId]);
+    try {
+      const [u, c] = await Promise.all([
+        api.getUser(isSelf ? "me" : targetId),
+        api.getConnections().catch(() => ({ connected: [], pending: [], incoming: [] })),
+      ]);
+      setProfile(u || (isSelf ? currentUser : null));
+      setConnections(c || { connected: [], pending: [], incoming: [] });
+    } catch (err) {
+      console.error("Failed to load profile", err);
+      if (isSelf && currentUser) {
+        setProfile(currentUser);
+      } else {
+        setProfile(null);
+      }
+    }
+  }, [isSelf, targetId, currentUser]);
 
   useEffect(() => {
     setLoading(true);
@@ -46,7 +58,7 @@ export default function Profile() {
   }, [loadProfile]);
 
   async function handleSave(patch) {
-    const updated = await api.updateProfile(currentUser.id, patch);
+    const updated = await api.updateProfile(currentUser?.id, patch);
     setProfile(updated);
     await refresh();
     setEditing(false);
